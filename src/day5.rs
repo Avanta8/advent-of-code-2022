@@ -66,11 +66,9 @@ pub fn solve_part2(input: &Input) -> String {
     let (mut drawing, moves) = input.clone();
 
     for (count, from, to) in moves {
-        let mut taken = vec![];
-        for _ in 0..count {
-            taken.push(drawing[from].pop_front().unwrap())
-        }
-        for x in taken.into_iter().rev() {
+        let mut rem = drawing[from].split_off(count);
+        std::mem::swap(&mut drawing[from], &mut rem);
+        for x in rem.into_iter().rev() {
             drawing[to].push_front(x);
         }
     }
