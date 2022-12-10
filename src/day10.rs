@@ -14,11 +14,9 @@ fn generator(input: &str) -> Input {
 fn get_values(input: &Input) -> Vec<i32> {
     let mut values = vec![1];
     for &command in input {
+        values.push(*values.last().unwrap());
         if let Some(value) = command {
-            values.push(*values.last().unwrap());
             values.push(values.last().unwrap() + value);
-        } else {
-            values.push(*values.last().unwrap());
         }
     }
     values
