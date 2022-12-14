@@ -6,33 +6,6 @@ use regex::Regex;
 
 static RE: OnceCell<Regex> = OnceCell::new();
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-struct Packet(Vec<Item>);
-
-impl FromStr for Packet {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = RE.get_or_init(|| Regex::new(r"\[|\]|\d+").unwrap());
-        let matches = re.find_iter(s).map(|m| m.as_str()).collect::<Vec<_>>();
-        let mut current = vec![vec![]];
-        for m in matches {
-            let mut item = None;
-            match m {
-                "[" => current.push(vec![]),
-                "]" => item = Some(Item::List(current.pop().unwrap())),
-                v => item = Some(Item::Int(v.parse().unwrap())),
-            }
-            if let Some(item) = item {
-                current.last_mut().unwrap().push(item);
-            }
-        }
-
-        assert_eq!(current.len(), 1);
-        Ok(Self(current.pop().unwrap()))
-    }
-}
-
 #[derive(Debug, Clone)]
 enum Item {
     Int(i32),
@@ -66,7 +39,31 @@ impl PartialOrd for Item {
     }
 }
 
-type Input = Vec<Packet>;
+impl FromStr for Item {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let re = RE.get_or_init(|| Regex::new(r"\[|\]|\d+").unwrap());
+        let matches = re.find_iter(s).map(|m| m.as_str()).collect::<Vec<_>>();
+        let mut current = vec![vec![]];
+        for m in matches {
+            let mut item = None;
+            match m {
+                "[" => current.push(vec![]),
+                "]" => item = Some(Item::List(current.pop().unwrap())),
+                v => item = Some(Item::Int(v.parse().unwrap())),
+            }
+            if let Some(item) = item {
+                current.last_mut().unwrap().push(item);
+            }
+        }
+
+        assert_eq!(current.len(), 1);
+        Ok(Self::List(current.pop().unwrap()))
+    }
+}
+
+type Input = Vec<Item>;
 
 #[aoc_generator(day13)]
 fn generator(input: &str) -> Input {
@@ -86,8 +83,8 @@ fn solve_part1(input: &Input) -> i32 {
 
 #[aoc(day13, part2)]
 fn solve_part2(input: &Input) -> usize {
-    let p1 = Packet(vec![Item::List(vec![Item::Int(2)])]);
-    let p2 = Packet(vec![Item::List(vec![Item::Int(6)])]);
+    let p1 = Item::List(vec![Item::List(vec![Item::Int(2)])]);
+    let p2 = Item::List(vec![Item::List(vec![Item::Int(6)])]);
 
     let mut input = input.to_vec();
     input.push(p1.clone());
