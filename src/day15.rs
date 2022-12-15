@@ -74,5 +74,5 @@ fn solve_part2(input: &Input) -> i64 {
             }
         }
     }
-    0
+    unreachable!()
 }
